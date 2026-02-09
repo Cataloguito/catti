@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CATALOGO</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+        }
+
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg);
+            padding-bottom: 120px;
+        }
+
+        h1 { text-align: center; color: var(--primary); }
+
+        #catalogo {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .producto {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Indicador visual de selección */
+        .producto.seleccionado {
+            border: 2px solid var(--accent);
+            background-color: #f0fff4;
+        }
+
+        .carrusel-contenedor {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .img-display {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            cursor: zoom-in;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.4);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .btn-prev { left: 0; }
+        .btn-next { right: 0; }
+
+        .precio {
+            font-size: 1.4rem;
+            color: var(--accent);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        /* Barra de herramientas inferior */
+        #barra-inferior {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -3px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .btn-accion {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+        .btn-limpiar { background: var(--danger); }
+        .btn-emitir { background: var(--accent); }
+
+        .checkbox-seleccionar { transform: scale(1.5); margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>TISSOT</h1>
+    
+    <div id="catalogo"></div>
+
+    <div id="barra-inferior">
+        <div>Total: <strong>$<span id="suma-total">0.00</span></strong></div>
+        <button class="btn-accion btn-limpiar" onclick="limpiarSeleccion()">Limpiar</button>
+        <button class="btn-accion btn-emitir" onclick="emitirListado()">Emitir Listado</button>
+    </div>
+
+    <script>
+        const misProductos = [
+            { id: 0, codigo: "001", nombre: "T1166171104701", desc: "Tissot Chrono XL Classic 45mm", precio: 950, imgs: ["T1166171104701.jpg"] },
+            { id: 1, codigo: "002", nombre: "T1166171105701", desc: "Tissot Chrono XL Classic 45mm", precio: 950, imgs: ["T1166171105701.jpg"] },
+            { id: 2, codigo: "003", nombre: "T1166171604200", desc: "Tissot Chrono XL Vintage 45mm", precio: 850, imgs: ["T1166171604200.jpg"] },
+            { id: 3, codigo: "004", nombre: "T1166171604700", desc: "Tissot Chrono XL Classic 45mm", precio: 850, imgs: ["T1166171604700.jpg"] },
+            { id: 4, codigo: "005", nombre: "T1202101105100", desc: "Tissot Seastar 1000 36mm", precio: 980, imgs: ["T1202101105100.jpg"] },
+            { id: 5, codigo: "006", nombre: "T1204101104100", desc: "Tissot Seastar 1000 40mm", precio: 1050, imgs: ["T1204101104100.jpg"] },
+            { id: 6, codigo: "007", nombre: "T1204101105100", desc: "Tissot Seastar 1000 40mm", precio: 1050, imgs: ["T1204101105100.jpg"] },
+            { id: 7, codigo: "008", nombre: "T1256171605100", desc: "Tissot Supersport Chrono 45.5mm", precio: 1000, imgs: ["T1256171605100.jpg"] },
+            { id: 8, codigo: "009", nombre: "T1274101105100", desc: "Tissot Gentleman 40mm", precio: 990, imgs: ["T1274101105100.jpg"] },
+            { id: 9, codigo: "010", nombre: "T1292101101300", desc: "Tissot Classic Dream 28mm", precio: 670, imgs: ["T1292101101300.jpg"] },
+            { id: 10, codigo: "011", nombre: "T1292101103100", desc: "Tissot Classic Dream 28mm", precio: 670, imgs: ["T1292101103100.jpg"] },
+            { id: 11, codigo: "012", nombre: " T1292101105300", desc: "Tissot Classic Dream 28mm", precio: 670, imgs: ["T1292101105300.jpg"] },
+            { id: 12, codigo: "013", nombre: "T1292102201300", desc: "Tissot Classic Dream 28mm", precio: 770, imgs: ["T1292102201300.jpg"] },
+            { id: 13, codigo: "014", nombre: "T1292102203100", desc: "Tissot Classic Dream 28mm", precio: 770, imgs: ["T1292102203100.jpg"] },
+            { id: 14, codigo: "015", nombre: "T1294101103100", desc: "Tissot Classic Dream 42mm", precio: 700, imgs: ["T1294101103100.jpg"] },
+            { id: 15, codigo: "016", nombre: "T1294101601300", desc: "Tissot Classic Dream 42mm", precio: 600, imgs: ["T1294101601300.jpg"] },
+            { id: 16, codigo: "017", nombre: "T1294101605300", desc: "Tissot Classic Dream 42mm", precio: 600, imgs: ["T1294101605300.jpg"] },
+            { id: 17, codigo: "018", nombre: "T1374101104100", desc: "Tissot PRX 40mm", precio: 900, imgs: ["T1374101104100.jpg"] },
+            { id: 18, codigo: "019", nombre: "T1432101101101", desc: "Tissot Everytime 34mm", precio: 690, imgs: ["T1432101101101.jpg"] },
+            { id: 19, codigo: "020", nombre: "T1494171105100", desc: "Tissot PR516 40mm", precio: 1150, imgs: ["T1494171105100.jpg"] },
+            { id: 20, codigo: "021", nombre: "T1502101103100", desc: "Tissot PR 100 34mm", precio: 700, imgs: ["T1502101103100.jpg"] },
+            { id: 21, codigo: "022", nombre: "T1502102103100", desc: "Tissot PR 100 34mm", precio: 790, imgs: ["T1502102103100.jpg"] },
+            { id: 22, codigo: "023", nombre: "T1502102111100", desc: "Tissot PR 100 34mm", precio: 830, imgs: ["T1502102111100.jpg"] },
+            { id: 23, codigo: "024", nombre: "T1504101108100", desc: "Tissot PR 100 40mm", precio: 700, imgs: ["T1504101108100.jpg"] },
+            { id: 24, codigo: "025", nombre: "T1504101109100", desc: "Tissot PR 100 40mm", precio: 700, imgs: ["T1504101109100.jpg"] },
+            { id: 25, codigo: "026", nombre: "T1504101601100", desc: "Tissot PR 100 40mm", precio: 650, imgs: ["T1504101601100.jpg"] },
+            { id: 26, codigo: "027", nombre: "T1504101603100", desc: "Tissot PR 100 40mm", precio: 650, imgs: ["T1504101603100.jpg"] },
+            { id: 27, codigo: "028", nombre: "T1504171101100", desc: "Tissot PR 100 40mm", precio: 850, imgs: ["T1504171101100.jpg"] },
+            { id: 28, codigo: "029", nombre: "T1514221104100", desc: "Tissot PRC 100 Solar 39mm", precio: 1000, imgs: ["T1514221104100.jpg"] },
+            { id: 29, codigo: "030", nombre: "T1562101135100", desc: "Tissot Ballade 34mm", precio: 800, imgs: ["T1562101135100.jpg"] },
+            { id: 30, codigo: "031", nombre: "T1562102203100", desc: "Tissot Ballade 34mm", precio: 900, imgs: ["T1562102203100.jpg"] },
+            { id: 31, codigo: "032", nombre: "T1564101104100", desc: "Tissot Ballade 40mm", precio: 800, imgs: ["T1564101104100.jpg"] }
+
+
+
+        ];
+
+        let indicesCarrusel = {};
+
+        function renderizarCatalogo() {
+            const contenedor = document.getElementById('catalogo');
+            contenedor.innerHTML = '';
+
+            misProductos.forEach((prod) => {
+                indicesCarrusel[prod.id] = 0;
+                const card = document.createElement('div');
+                card.className = 'producto';
+                card.id = `card-${prod.id}`;
+                card.innerHTML = `
+                    <div class="carrusel-contenedor">
+                        <button class="nav-btn btn-prev" onclick="cambiarImagen(${prod.id}, -1)">&#10094;</button>
+                        <img id="img-${prod.id}" src="imagenes/${prod.imgs[0]}" class="img-display" onclick="window.open(this.src)">
+                        <button class="nav-btn btn-next" onclick="cambiarImagen(${prod.id}, 1)">&#10095;</button>
+                    </div>
+                    <h3>${prod.nombre}</h3>
+                    <p><small>REF: ${prod.codigo}</small></p>
+                    <p>${prod.desc}</p>
+                    <p class="precio">$${prod.precio.toFixed(2)}</p>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" class="checkbox-seleccionar" 
+                               data-id="${prod.id}" data-nombre="${prod.nombre}" 
+                               data-precio="${prod.precio}" onchange="actualizarTotal(${prod.id})"> 
+                        Seleccionar
+                    </label>
+                `;
+                contenedor.appendChild(card);
+            });
+        }
+
+        function cambiarImagen(prodId, direccion) {
+            const prod = misProductos.find(p => p.id === prodId);
+            indicesCarrusel[prodId] = (indicesCarrusel[prodId] + direccion + prod.imgs.length) % prod.imgs.length;
+            document.getElementById(`img-${prodId}`).src = `imagenes/${prod.imgs[indicesCarrusel[prodId]]}`;
+        }
+
+        function actualizarTotal(id) {
+            let suma = 0;
+            const checks = document.querySelectorAll('.checkbox-seleccionar');
+            
+            checks.forEach(check => {
+                const card = document.getElementById(`card-${check.dataset.id}`);
+                if(check.checked) {
+                    suma += parseFloat(check.dataset.precio);
+                    card.classList.add('seleccionado');
+                } else {
+                    card.classList.remove('seleccionado');
+                }
+            });
+            document.getElementById('suma-total').innerText = suma.toFixed(2);
+        }
+
+        function limpiarSeleccion() {
+            document.querySelectorAll('.checkbox-seleccionar').forEach(check => {
+                check.checked = false;
+                document.getElementById(`card-${check.dataset.id}`).classList.remove('seleccionado');
+            });
+            document.getElementById('suma-total').innerText = "0.00";
+        }
+
+        function emitirListado() {
+            const seleccionados = document.querySelectorAll('.checkbox-seleccionar:checked');
+            if (seleccionados.length === 0) {
+                alert("Por favor, selecciona al menos un producto.");
+                return;
+            }
+
+            let contenido = `
+                <html>
+                <head><title>Resumen de Pedido</title>
+                <style>
+                    body { font-family: sans-serif; padding: 40px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                    th { background-color: #2c3e50; color: white; }
+                    .total-final { font-size: 1.5rem; text-align: right; margin-top: 20px; }
+                </style>
+                </head>
+                <body>
+                    <h2>Resumen de Productos Seleccionados</h2>
+                    <table>
+                        <tr><th>Producto</th><th>Precio</th></tr>`;
+
+            let total = 0;
+            seleccionados.forEach(item => {
+                contenido += `<tr><td>${item.dataset.nombre}</td><td>$${parseFloat(item.dataset.precio).toFixed(2)}</td></tr>`;
+                total += parseFloat(item.dataset.precio);
+            });
+
+            contenido += `</table>
+                    <div class="total-final">Total a Pagar: <strong>$${total.toFixed(2)}</strong></div>
+                    <p style="text-align:center; margin-top:50px;"><button onclick="window.print()">Imprimir / Guardar PDF</button></p>
+                </body>
+                </html>`;
+
+            const ventana = window.open('', '_blank');
+            ventana.document.write(contenido);
+            ventana.document.close();
+        }
+
+        window.onload = renderizarCatalogo;
+    </script>
+</body>
+</html>
